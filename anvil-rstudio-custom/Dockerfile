@@ -1,3 +1,5 @@
+FROM condaforge/mambaforge:23.1.0-4 as mamba
+
 FROM ghcr.io/bioconductor/ml-verse:3.17 as build
 
 RUN apt-get update && apt-get install -yq --no-install-recommends \
@@ -42,6 +44,7 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 FROM ghcr.io/bioconductor/ml-verse:3.17 as final
 COPY --from=build / /
+COPY --from=mamba / /
 
 ENV RSTUDIO_PORT 8001
 ENV RSTUDIO_HOME /etc/rstudio

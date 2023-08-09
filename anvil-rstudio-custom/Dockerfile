@@ -1,5 +1,3 @@
-FROM condaforge/mambaforge:23.1.0-4 as mamba
-
 FROM ghcr.io/bioconductor/ml-verse:3.17 as build
 
 RUN apt-get update && apt-get install -yq --no-install-recommends \
@@ -42,9 +40,21 @@ RUN find ${RSTUDIO_HOME}/scripts -name '*.sh' -type f | xargs chmod +x \
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 
-FROM ghcr.io/bioconductor/ml-verse:3.17 as final
+FROM condaforge/mambaforge:23.1.0-4 as mamba
+
+RUN mamba install plink -c bioconda -y
+
+RUN conda init bash
+
+RUN conda config --set auto_activate_base false 
+
 COPY --from=build / /
+
+FROM ghcr.io/bioconductor/ml-verse:3.17 as final
+
 COPY --from=mamba / /
+
+RUN /opt/conda/bin/mamba init bash
 
 ENV RSTUDIO_PORT 8001
 ENV RSTUDIO_HOME /etc/rstudio

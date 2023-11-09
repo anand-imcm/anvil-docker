@@ -19,7 +19,8 @@ RUN usermod -g users rstudio \
     && useradd -m -s /bin/bash -N -u 1001 welder-user
 
 # google-cloud R packages
-RUN R -e "BiocManager::install(c('AnVIL', 'DataBiosphere/Ronaldo', 'shiny', 'bigrquery', 'googleCloudStorageR', 'tidyverse', 'Seurat', 'markdown', 'SingleCellExperiment', 'GenomicFeatures', 'GenomicAlignments', 'ShortRead', 'DESeq2', 'AnnotationHub', 'ExperimentHub', 'ensembldb', 'scRNAseq', 'scran', 'Rtsne'))"
+# RUN R -e "BiocManager::install(c('AnVIL', 'DataBiosphere/Ronaldo', 'shiny', 'bigrquery', 'googleCloudStorageR', 'tidyverse', 'Seurat', 'markdown', 'SingleCellExperiment', 'GenomicFeatures', 'GenomicAlignments', 'ShortRead', 'DESeq2', 'AnnotationHub', 'ExperimentHub', 'ensembldb', 'scRNAseq', 'scran', 'Rtsne'))"
+RUN R -e "BiocManager::install(c('AnVIL', 'DataBiosphere/Ronaldo', 'shiny', 'bigrquery', 'googleCloudStorageR', 'tidyverse',  'markdown'))"
 
 ENV RSTUDIO_PORT 8001
 ENV RSTUDIO_HOME /etc/rstudio
@@ -39,22 +40,18 @@ RUN find ${RSTUDIO_HOME}/scripts -name '*.sh' -type f | xargs chmod +x \
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
+RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba && \
+    ./bin/micromamba shell init -s bash -p ~/micromamba -y && \
+    echo "source ~/micromamba/etc/profile.d/mamba.sh" >> ~/.bashrc
 
-FROM condaforge/mambaforge:23.1.0-4 as mamba
+ENV MY_VAR=myenv
+ENV MAMBA_ROOT_PREFIX=/root/micromamba
 
-RUN mamba install plink -c bioconda -y
-
-RUN conda init bash
-
-RUN conda config --set auto_activate_base false 
-
-COPY --from=build / /
+RUN micromamba create -c bioconda -n myenv bcftools -y
 
 FROM ghcr.io/bioconductor/ml-verse:3.17 as final
 
-COPY --from=mamba / /
-
-RUN /opt/conda/bin/mamba init bash
+COPY --from=build / /
 
 ENV RSTUDIO_PORT 8001
 ENV RSTUDIO_HOME /etc/rstudio

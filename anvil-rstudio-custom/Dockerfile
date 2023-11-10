@@ -23,7 +23,9 @@ RUN usermod -g users rstudio \
 RUN R -e "BiocManager::install(c('AnVIL', 'DataBiosphere/Ronaldo', 'shiny', 'bigrquery', 'googleCloudStorageR', 'tidyverse',  'markdown'))"
 
 ENV RSTUDIO_PORT 8001
+
 ENV RSTUDIO_HOME /etc/rstudio
+
 ENV RSTUDIO_USERSETTING /home/rstudio/.config/rstudio/rstudio-prefs.json
 
 ADD rserver.conf $RSTUDIO_HOME/rserver.conf
@@ -40,19 +42,24 @@ RUN find ${RSTUDIO_HOME}/scripts -name '*.sh' -type f | xargs chmod +x \
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba && \
-    ./bin/micromamba shell init -s bash -p ~/micromamba -y && \
-    echo "source ~/micromamba/etc/profile.d/mamba.sh" >> ~/.bashrc
+# Add micromamba to PATH
+ENV PATH="/root/micromamba/bin:${PATH}"
 
-ENV MY_VAR=myenv
-ENV MAMBA_ROOT_PREFIX=/root/micromamba
+ENV MAMBA_ROOT_PREFIX="/root/micromamba"
 
-RUN micromamba create -c bioconda -n myenv bcftools -y
+RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba \
+    && ./bin/micromamba shell init -s bash -p ~/micromamba -y \
+    && echo "source ~/micromamba/etc/profile.d/micromamba.sh" >> ~/.bashrc \
+    && micromamba install -y -n base -c bioconda bcftools
 
 FROM ghcr.io/bioconductor/ml-verse:3.17 as final
 
 COPY --from=build / /
 
+RUN echo "source ~/micromamba/etc/profile.d/micromamba.sh" >> ~/.bashrc
+
 ENV RSTUDIO_PORT 8001
+
 ENV RSTUDIO_HOME /etc/rstudio
+
 ENV RSTUDIO_USERSETTING /home/rstudio/.config/rstudio/rstudio-prefs.json

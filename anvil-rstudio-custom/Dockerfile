@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
  && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
  && apt-get update \
  && apt-get install -yq --no-install-recommends \
-    google-cloud-sdk \
+    google-cloud-sdk bcftools bedtools samtools tabix wget curl bzip2 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -19,13 +19,10 @@ RUN usermod -g users rstudio \
     && useradd -m -s /bin/bash -N -u 1001 welder-user
 
 # google-cloud R packages
-# RUN R -e "BiocManager::install(c('AnVIL', 'DataBiosphere/Ronaldo', 'shiny', 'bigrquery', 'googleCloudStorageR', 'tidyverse', 'Seurat', 'markdown', 'SingleCellExperiment', 'GenomicFeatures', 'GenomicAlignments', 'ShortRead', 'DESeq2', 'AnnotationHub', 'ExperimentHub', 'ensembldb', 'scRNAseq', 'scran', 'Rtsne'))"
 RUN R -e "BiocManager::install(c('AnVIL', 'DataBiosphere/Ronaldo', 'shiny', 'bigrquery', 'googleCloudStorageR', 'tidyverse',  'markdown'))"
 
 ENV RSTUDIO_PORT 8001
-
 ENV RSTUDIO_HOME /etc/rstudio
-
 ENV RSTUDIO_USERSETTING /home/rstudio/.config/rstudio/rstudio-prefs.json
 
 ADD rserver.conf $RSTUDIO_HOME/rserver.conf
@@ -42,24 +39,10 @@ RUN find ${RSTUDIO_HOME}/scripts -name '*.sh' -type f | xargs chmod +x \
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Add micromamba to PATH
-ENV PATH="/root/micromamba/bin:${PATH}"
-
-ENV MAMBA_ROOT_PREFIX="/root/micromamba"
-
-RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba \
-    && ./bin/micromamba shell init -s bash -p ~/micromamba -y \
-    && echo "source ~/micromamba/etc/profile.d/micromamba.sh" >> ~/.bashrc \
-    && micromamba install -y -n base -c bioconda bcftools
 
 FROM ghcr.io/bioconductor/ml-verse:3.17 as final
-
 COPY --from=build / /
 
-RUN echo "source ~/micromamba/etc/profile.d/micromamba.sh" >> ~/.bashrc
-
 ENV RSTUDIO_PORT 8001
-
 ENV RSTUDIO_HOME /etc/rstudio
-
 ENV RSTUDIO_USERSETTING /home/rstudio/.config/rstudio/rstudio-prefs.json

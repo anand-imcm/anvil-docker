@@ -1,6 +1,6 @@
 FROM ghcr.io/bioconductor/ml-verse:3.19 as build
 
-RUN apt-get update && apt-get install -yq --no-install-recommends build-essential \
+RUN apt-get update && apt-get install -yq --no-install-recommends build-essential curl wget \
     gnupg \
     lsb-release \
  && echo "deb http://packages.cloud.google.com/apt cloud-sdk main" > /etc/apt/sources.list.d/google-cloud-sdk.list \
@@ -18,12 +18,7 @@ RUN pip3 -V \
 RUN usermod -g users rstudio \
     && useradd -m -s /bin/bash -N -u 1001 welder-user
 
-# RUN R -e "install.packages(c('rmarkdown', 'conflicted', 'khroma', 'svglite', 'fastmatch', 'reshape2', 'ggbeeswarm', 'VennDiagram', 'mice', 'Seurat', 'tidyverse', 'quarto', 'palmerpenguins'))"
-
-# google-cloud R packages
-# RUN R -e "BiocManager::install(c('AnVIL', 'DataBiosphere/Ronaldo', 'shiny', 'bigrquery', 'googleCloudStorageR', 'markdown', 'ComplexHeatmap', 'DEP', 'GSEABase', 'GSVA', 'biomaRt'))"
-
-RUN R -e "BiocManager::install(c('AnVIL', 'DataBiosphere/Ronaldo', 'shiny', 'bigrquery', 'googleCloudStorageR', 'tidyverse', 'Seurat', 'markdown', 'rmarkdown','conflicted', 'khroma', 'svglite', 'fastmatch', 'reshape2', 'ggbeeswarm', 'VennDiagram', 'mice', 'ComplexHeatmap', 'DEP', 'GSEABase', 'GSVA', 'biomaRt', 'tidyverse', 'quarto', 'palmerpenguins'))"
+RUN R -e "BiocManager::install(c('AnVIL', 'DataBiosphere/Ronaldo', 'shiny', 'bigrquery', 'googleCloudStorageR', 'tidyverse', 'Seurat', 'markdown', 'rmarkdown','conflicted', 'khroma', 'svglite', 'fastmatch', 'reshape2', 'ggbeeswarm', 'VennDiagram', 'mice', 'ComplexHeatmap', 'DEP', 'GSEABase', 'GSVA', 'biomaRt', 'quarto', 'palmerpenguins'))"
 
 ENV RSTUDIO_PORT 8001
 ENV RSTUDIO_HOME /etc/rstudio

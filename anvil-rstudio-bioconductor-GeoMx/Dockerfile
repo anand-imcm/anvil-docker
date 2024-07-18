@@ -1,4 +1,4 @@
-FROM ghcr.io/bioconductor/ml-verse:3.19 as build
+FROM ghcr.io/bioconductor/ml-verse:3.19 AS build
 
 RUN apt-get update && apt-get install -yq --no-install-recommends build-essential curl wget \
     gnupg \
@@ -18,11 +18,11 @@ RUN pip3 -V \
 RUN usermod -g users rstudio \
     && useradd -m -s /bin/bash -N -u 1001 welder-user
 
-RUN R -e "BiocManager::install(c('AnVIL', 'DataBiosphere/Ronaldo', 'shiny', 'bigrquery', 'googleCloudStorageR', 'tidyverse', 'reshape2', 'aggregateBioVar', 'annotables', 'clusterProfiler', 'ComplexHeatmap', 'cowplot', 'data.table', 'DESeq2', 'DGCA', 'DOSE', 'dplyr', 'enrichplot', 'flexmix', 'ggplot2', 'ggpubr', 'glmnet', 'grDevices', 'grid', 'hgnc', 'mvtnorm', 'org.Hs.eg.db', 'pathview', 'qusage', 'SAVER', 'scater', 'scCustomize', 'scmap', 'Seurat', 'SingleCellExperiment', 'standR', 'stringr', 'viridis', 'markdown', 'rmarkdown', 'quarto', 'palmerpenguins'))"
+RUN R -e "BiocManager::install(c('AnVIL', 'DataBiosphere/Ronaldo', 'shiny', 'bigrquery', 'googleCloudStorageR', 'tidyverse', 'reshape2', 'aggregateBioVar', 'annotables', 'argparser', 'AUCell', 'clusterProfiler', 'ComplexHeatmap', 'cowplot', 'data.table', 'DESeq2', 'DGCA', 'DOSE', 'dplyr', 'DropletUtils', 'DT', 'enrichplot', 'flexmix', 'GEOquery', 'ggplot2', 'ggpubr', 'glmnet', 'grDevices', 'grid', 'GSEABase', 'hgnc', 'Matrix', 'mvtnorm', 'NMF', 'optparse', 'org.Hs.eg.db', 'patchwork', 'pathview', 'plotly', 'qusage', 'SAVER', 'scater', 'scCustomize', 'scmap', 'Seurat', 'SingleCellExperiment', 'standR', 'stringr', 'tidyr', 'viridis', 'markdown', 'rmarkdown', 'quarto', 'palmerpenguins'))"
 
-ENV RSTUDIO_PORT 8001
-ENV RSTUDIO_HOME /etc/rstudio
-ENV RSTUDIO_USERSETTING /home/rstudio/.config/rstudio/rstudio-prefs.json
+ENV RSTUDIO_PORT=8001
+ENV RSTUDIO_HOME=/etc/rstudio
+ENV RSTUDIO_USERSETTING=/home/rstudio/.config/rstudio/rstudio-prefs.json
 
 ADD rserver.conf $RSTUDIO_HOME/rserver.conf
 
@@ -39,9 +39,9 @@ RUN find ${RSTUDIO_HOME}/scripts -name '*.sh' -type f | xargs chmod +x \
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 
-FROM ghcr.io/bioconductor/ml-verse:3.19 as final
+FROM ghcr.io/bioconductor/ml-verse:3.19 AS final
 COPY --from=build / /
 
-ENV RSTUDIO_PORT 8001
-ENV RSTUDIO_HOME /etc/rstudio
-ENV RSTUDIO_USERSETTING /home/rstudio/.config/rstudio/rstudio-prefs.json
+ENV RSTUDIO_PORT=8001
+ENV RSTUDIO_HOME=/etc/rstudio
+ENV RSTUDIO_USERSETTING=/home/rstudio/.config/rstudio/rstudio-prefs.json
